@@ -70,6 +70,7 @@ from ansible.module_utils.common.validation import (
     check_type_path,
     check_type_raw,
     check_type_str,
+    check_unique_values,
 )
 
 # Python2 & 3 way to get NoneType
@@ -728,6 +729,11 @@ def _validate_sub_spec(argument_spec, parameters, prefix='', options_context=Non
                 elements = [parameters[param]]
             else:
                 elements = parameters[param]
+
+            try:
+                check_unique_values(argument_spec, parameters, options_context)
+            except TypeError as e:
+                errors.append(SubParameterTypeError(to_native(e)))
 
             for idx, sub_parameters in enumerate(elements):
                 if not isinstance(sub_parameters, dict):

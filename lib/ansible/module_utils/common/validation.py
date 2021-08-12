@@ -576,3 +576,48 @@ def check_type_jsonarg(value):
     elif isinstance(value, (list, tuple, dict)):
         return jsonify(value)
     raise TypeError('%s cannot be converted to a json string' % type(value))
+
+
+def check_unique_values(argument_spec, parameters, options_context=None):
+    """Check value of all parameters in argument_spec and return a list of lists
+    which containes dicts which are required to have unique values but is not in parameters.
+
+    Raises :class:`TypeError` if the check fails
+
+    :arg argument_spec: Argument spec dictionary containing all parameters
+        and their specification
+    :arg list_of_dicts: List of Dictionary of parameters
+
+    :returns: Empty list or raises :class:`TypeError` if the check fails.
+    """
+
+    not_unique = []
+    if argument_spec is None:
+        return not_unique
+
+    for (outer_option_key, outer_option_value) in argument_spec.items():
+        type = outer_option_value.get('type', False)
+        elements = outer_option_value.get('elements', False)
+        options = outer_option_value.get('options', False)
+        if type == 'list' and elements == 'dict' and options:
+            for (inner_option_key, inner_option_value) in options.items():
+                unique = inner_option_value.get('unique', False)
+                if unique:
+                    unique_key = inner_option_key
+                    parameter_list = parameters.get(outer_option_key, False)
+                    if parameter_list:
+                        known_values = []
+                        for parameter_list_item in parameter_list:
+                            unique_value = parameter_list_item.get(unique_key)
+                            if unique_value is not None and unique_value not in known_values:
+                                known_values.append(unique_value)
+                            else:
+                                not_unique.append("%s: %s" % (unique_key, unique_value))
+
+    if not_unique:
+        msg = "List element values not unique: %s" % ", ".join(not_unique)
+        if options_context:
+            msg = "{0} in {1}".format(msg, " -> ".join(options_context))
+        raise TypeError(to_native(msg))
+
+    return not_unique
