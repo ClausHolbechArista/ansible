@@ -730,10 +730,11 @@ def _validate_sub_spec(argument_spec, parameters, prefix='', options_context=Non
             else:
                 elements = parameters[param]
 
+            # Check for arg_spec "unique" in list of dicts
             try:
                 check_unique_values(argument_spec, parameters, options_context)
-            except TypeError as e:
-                errors.append(SubParameterTypeError(to_native(e)))
+            except ValueError as e:
+                errors.append(ArgumentValueError(to_native(e)))
 
             for idx, sub_parameters in enumerate(elements):
                 if not isinstance(sub_parameters, dict):

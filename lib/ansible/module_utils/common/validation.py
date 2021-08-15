@@ -588,7 +588,7 @@ def check_unique_values(argument_spec, parameters, options_context=None):
         and their specification
     :arg list_of_dicts: List of Dictionary of parameters
 
-    :returns: Empty list or raises :class:`TypeError` if the check fails.
+    :returns: Empty list or raises :class:`ValueError` if the check fails.
     """
 
     not_unique = []
@@ -612,12 +612,12 @@ def check_unique_values(argument_spec, parameters, options_context=None):
                             if unique_value is not None and unique_value not in known_values:
                                 known_values.append(unique_value)
                             else:
-                                not_unique.append("%s: %s" % (unique_key, unique_value))
+                                not_unique.append("key '%s', value '%s'" % (unique_key, unique_value))
 
     if not_unique:
         msg = "List element values not unique: %s" % ", ".join(not_unique)
         if options_context:
             msg = "{0} in {1}".format(msg, " -> ".join(options_context))
-        raise TypeError(to_native(msg))
+        raise ValueError(to_native(msg))
 
     return not_unique
